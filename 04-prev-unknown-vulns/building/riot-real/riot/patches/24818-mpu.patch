@@ -1,0 +1,21 @@
+diff --git a/examples/gnrc_networking/main.c b/examples/gnrc_networking/main.c
+index 734ae42067..5b378bb772 100644
+--- a/examples/gnrc_networking/main.c
++++ b/examples/gnrc_networking/main.c
+@@ -22,6 +22,7 @@
+ 
+ #include "shell.h"
+ #include "msg.h"
++#include "mpu.h"
+ 
+ #define MAIN_QUEUE_SIZE     (8)
+ static msg_t _main_msg_queue[MAIN_QUEUE_SIZE];
+@@ -33,6 +34,8 @@ int main(void)
+     msg_init_queue(_main_msg_queue, MAIN_QUEUE_SIZE);
+     puts("RIOT network stack example application");
+ 
++    // configure the mpu
++    mpu_configure(3, 0, MPU_ATTR(1, AP_NO_NO, 0, 1, 0, 1, MPU_SIZE_512B));
+     /* start shell */
+     puts("All up, running the shell now");
+     char line_buf[SHELL_DEFAULT_BUFSIZE];

@@ -1,0 +1,30 @@
+diff --git a/examples/gnrc_networking/Makefile b/examples/gnrc_networking/Makefile
+index 202d1eb080..e846725425 100644
+--- a/examples/gnrc_networking/Makefile
++++ b/examples/gnrc_networking/Makefile
+@@ -14,20 +14,16 @@ USEMODULE += auto_init_gnrc_netif
+ # Activate ICMPv6 error messages
+ USEMODULE += gnrc_icmpv6_error
+ # Specify the mandatory networking module for a IPv6 routing node
+-USEMODULE += gnrc_ipv6_router_default
++#USEMODULE += gnrc_ipv6_router_default
++USEMODULE += gnrc_sixlowpan_border_router_default
+ # Add a routing protocol
+ USEMODULE += gnrc_rpl
+ USEMODULE += auto_init_gnrc_rpl
+-# Additional networking modules that can be dropped if not needed
+-USEMODULE += gnrc_icmpv6_echo
+-USEMODULE += gnrc_udp_cmd
+ # Add also the shell, some shell commands
+ USEMODULE += shell
+-USEMODULE += shell_commands
+-USEMODULE += ps
+-USEMODULE += netstats_l2
+-USEMODULE += netstats_ipv6
+-USEMODULE += netstats_rpl
++# more modules for testing
++USEMODULE += gnrc_sixlowpan_frag_sfr
++USEMODULE += gnrc_sixlowpan_frag_minfwd
+ 
+ # Optionally include DNS support. This includes resolution of names at an
+ # upstream DNS server and the handling of RDNSS options in Router Advertisements

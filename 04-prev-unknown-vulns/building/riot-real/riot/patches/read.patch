@@ -1,0 +1,15 @@
+diff --git a/sys/net/gnrc/netif/ieee802154/gnrc_netif_ieee802154.c b/sys/net/gnrc/netif/ieee802154/gnrc_netif_ieee802154.c
+index aff8937500..46701ce3a8 100644
+--- a/sys/net/gnrc/netif/ieee802154/gnrc_netif_ieee802154.c
++++ b/sys/net/gnrc/netif/ieee802154/gnrc_netif_ieee802154.c
+@@ -108,6 +108,10 @@ static gnrc_pktsnip_t *_recv(gnrc_netif_t *netif)
+             return NULL;
+         }
+         nread = dev->driver->recv(dev, pkt->data, bytes_expected, &rx_info);
++	// skip the header 
++	pkt->data += 16;
++	nread -= 16;
++
+         if (nread <= 0) {
+             gnrc_pktbuf_release(pkt);
+             return NULL;
