@@ -51,8 +51,21 @@ CONFIG = {
     cve_id: {**BASE_CONFIG, "backport_commits": FIX_COMMITS.difference(commits)}
     for cve_id, commits in FIX_COMMITS_MAPPING.items()
 }
+
 CONFIG["CVE-2023-24826"]["patches"] = BASE_CONFIG["patches"].copy()
 CONFIG["CVE-2023-24826"]["patches"].remove("fix_CVE-2023-24826.patch")
+
+# one example contains all cves
+CONFIG["CVE-2023-00000"] = {**BASE_CONFIG, "backport_commits": set([
+"b1dff296db8bff30caedf8db7a0d442ee6f0c922", # off-by-one in ethos driver
+"269b3c97c23ac14bfcacfb8d83a83501ffd277de", # off-by-one in slipdev driver
+])}
+CONFIG["CVE-2023-00000"]["patches"].remove("fix_CVE-2023-24826.patch")
+CONFIG["CVE-2023-00000"]["patches"].remove("fix_CVE-2023-33973.patch")
+CONFIG["CVE-2023-00000"]["patches"].remove("fix_CVE-2023-33974.patch")
+CONFIG["CVE-2023-00000"]["patches"].remove("fix_CVE-2023-33975.patch")
+CONFIG["CVE-2023-00000"]["patches"].append("read.patch")
+
 
 GIT_URL = "https://github.com/RIOT-OS/RIOT"
 
@@ -64,7 +77,10 @@ def build(repo_path, out_path, cache_path, config, nproc):
         "DOCKER_ENVIRONMENT_CMDLINE": "-e 'CFLAGS=-gdwarf-4 -gstrict-dwarf'",
     }
     target_path = repo_path.joinpath("examples", config["target"])
-    subprocess.run(["make", "-C", target_path, "-j", str(nproc), "BOARD=cc2538dk", "clean", "all"], env=env, check=True)
+    try:
+        subprocess.run(["make", "-C", target_path, "-j", str(nproc), "BOARD=cc2538dk", "clean", "all"], env=env, check=True)
+    except:
+        print("Maybe wrong")
     bin_path = target_path.joinpath("bin", "cc2538dk")
     bins = [f"{config['target']}.bin", f"{config['target']}.elf"]
     for bin in bins:
