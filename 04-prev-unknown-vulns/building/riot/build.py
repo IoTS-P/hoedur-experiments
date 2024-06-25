@@ -16,6 +16,21 @@ FIX_COMMITS_MAPPING = {
     "CVE-2023-24825": {"709ddd2ba75dcc3cb0ed0e107f39a1bd9757c2a1"},
     # this fix commit doesn't apply cleanly, so we have to patch it manually
     "CVE-2023-24826": set(),  # {"eb9e50aafe300b75a30dc24e8c7005f88ecd5d1d"},
+    "CVE-2023-24819.20.22.23.25-33973": {
+        "73615161c01fcfbbc7216cf502cabb12c1598ee4",
+        "2709fbd827b688fe62df2c77c316914f4a3a6d4a",
+        "639c04325de4ceb9d444955f4927bfae95843a39",
+        "4a081f86616cb5c9dd0b5d7b286da03285d1652a",
+        "709ddd2ba75dcc3cb0ed0e107f39a1bd9757c2a1",
+    },
+    "CVE-2023-24817.18.21.26-33974.5": {
+        "4f1e2a370974da7796a9db3a0cbdb1556c134d4d",
+        "0bec3e245ed3815ad6c8cae54673f0021777768b",
+        "17c70f7ee0b1445f2941f516f264ed4a096e82b7",
+        "aa27ed71fa3e5d48dee1748dcf27b6323ec98a33",
+        "9728f727e75d7d78dbfb5918e0de1b938b7b6d2c",
+    },
+
 }
 
 # set of all fix commits
@@ -60,11 +75,27 @@ CONFIG["CVE-2023-00000"] = {**BASE_CONFIG, "backport_commits": set([
 "b1dff296db8bff30caedf8db7a0d442ee6f0c922", # off-by-one in ethos driver
 "269b3c97c23ac14bfcacfb8d83a83501ffd277de", # off-by-one in slipdev driver
 ])}
+# Not Copy will influence other CVEs
+CONFIG["CVE-2023-00000"]["patches"] = BASE_CONFIG["patches"].copy()
 CONFIG["CVE-2023-00000"]["patches"].remove("fix_CVE-2023-24826.patch")
 CONFIG["CVE-2023-00000"]["patches"].remove("fix_CVE-2023-33973.patch")
 CONFIG["CVE-2023-00000"]["patches"].remove("fix_CVE-2023-33974.patch")
 CONFIG["CVE-2023-00000"]["patches"].remove("fix_CVE-2023-33975.patch")
 CONFIG["CVE-2023-00000"]["patches"].append("read.patch")
+
+# merged test case
+CONFIG["CVE-2023-24819.20.22.23.25-33973"]["patches"] = BASE_CONFIG["patches"].copy()
+CONFIG["CVE-2023-24819.20.22.23.25-33973"]["patches"].remove("fix_CVE-2023-33973.patch")
+CONFIG["CVE-2023-24819.20.22.23.25-33973"]["patches"].append("read.patch")
+# print(CONFIG["CVE-2023-24819/20/22/23/25-33973"]["patches"])
+
+
+
+CONFIG["CVE-2023-24817.18.21.26-33974.5"]["patches"] = BASE_CONFIG["patches"].copy()
+CONFIG["CVE-2023-24817.18.21.26-33974.5"]["patches"].remove("fix_CVE-2023-33974.patch")
+CONFIG["CVE-2023-24817.18.21.26-33974.5"]["patches"].remove("fix_CVE-2023-33975.patch")
+CONFIG["CVE-2023-24817.18.21.26-33974.5"]["patches"].remove("fix_CVE-2023-24826.patch")
+CONFIG["CVE-2023-24817.18.21.26-33974.5"]["patches"].append("read.patch")
 
 
 GIT_URL = "https://github.com/RIOT-OS/RIOT"
