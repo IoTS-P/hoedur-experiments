@@ -1,7 +1,7 @@
-From b389caf0937cfafa84345aabc22c2645880c4972 Mon Sep 17 00:00:00 2001
+From 6cff046710b21d3fe1b2d949eb2bef88712c43a6 Mon Sep 17 00:00:00 2001
 From: Ruibo Lu <reaperlu@hust.edu.cn>
-Date: Sun, 21 Jul 2024 22:06:32 +0800
-Subject: [PATCH] [st_mqttsn]: add Smartthings SDK based Light
+Date: Sun, 21 Jul 2024 23:12:49 +0800
+Subject: [PATCH] [st_mqttsn]: add SmartThings App - Smart Light
 
 Signed-off-by: Ruibo Lu <reaperlu@hust.edu.cn>
 ---
@@ -116,12 +116,12 @@ Signed-off-by: Ruibo Lu <reaperlu@hust.edu.cn>
  examples/st_mqttsn/device_control.c           | 226 +++++++
  examples/st_mqttsn/device_control.h           |  77 +++
  examples/st_mqttsn/device_info.json           |   8 +
- examples/st_mqttsn/light_main.c               | 419 +++++++++++++
+ examples/st_mqttsn/light_main.c               | 423 +++++++++++++
  examples/st_mqttsn/mqtt_dev.h                 |  16 +
  examples/st_mqttsn/onboarding_config.json     |  16 +
  examples/st_mqttsn/st_dev.c                   | 475 +++++++++++++++
  examples/st_mqttsn/st_dev.h                   | 366 ++++++++++++
- 116 files changed, 10506 insertions(+)
+ 116 files changed, 10510 insertions(+)
  create mode 100644 examples/st_mqttsn/APIs.md
  create mode 100644 examples/st_mqttsn/Makefile
  create mode 100644 examples/st_mqttsn/Makefile.ci
@@ -10121,10 +10121,10 @@ index 0000000000..5d9b000ca9
 +}
 diff --git a/examples/st_mqttsn/light_main.c b/examples/st_mqttsn/light_main.c
 new file mode 100644
-index 0000000000..0f4fc21d0c
+index 0000000000..810f6e9416
 --- /dev/null
 +++ b/examples/st_mqttsn/light_main.c
-@@ -0,0 +1,419 @@
+@@ -0,0 +1,423 @@
 +/* ***************************************************************************
 + *
 + * Copyright 2019 Samsung Electronics All Rights Reserved.
@@ -10159,6 +10159,8 @@ index 0000000000..0f4fc21d0c
 +#include "caps_colorTemperature.h"
 +#include "caps_activityLightingMode.h"
 +#include "caps_dustSensor.h"
++
++#include "mpu.h"
 +
 +static char stack[THREAD_STACKSIZE_DEFAULT];
 +static msg_t queue[8];
@@ -10482,7 +10484,7 @@ index 0000000000..0f4fc21d0c
 +
 +	int iot_err;
 +
-+    // 1. create a iot context
++	// 1. create a iot context
 +	ctx = st_conn_init();
 +	if (ctx != NULL) {
 +		iot_err = st_conn_set_noti_cb(ctx, iot_noti_cb, NULL);
@@ -10491,9 +10493,9 @@ index 0000000000..0f4fc21d0c
 +	} else {
 +		printf("fail to create the iot_context\n");
 +	}
-+    
++ 
 +    connection_start();
-+    
++ 
 +    iot_gpio_init();
 +	
 +	// 3. register a callback function to process capability command when it comes from the SmartThings Server
@@ -10536,6 +10538,8 @@ index 0000000000..0f4fc21d0c
 +    thread_create(stack, sizeof(stack), EMCUTE_PRIO, 0, emcute_thread, NULL,
 +                    "emcute");
 +
++    /* mpu configure */
++    mpu_configure(3, 0, MPU_ATTR(1, AP_NO_NO, 0, 1, 0, 1, MPU_SIZE_512B));
 +    /* start shell */
 +    char line_buf[SHELL_DEFAULT_BUFSIZE];
 +    shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
