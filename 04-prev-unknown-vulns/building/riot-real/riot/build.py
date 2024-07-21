@@ -2,6 +2,7 @@ import subprocess
 
 # map CVE id to the fixing commit
 FIX_COMMITS_MAPPING = {
+    "CVE-2023-24800": set(),
     "CVE-2023-24817": {"4f1e2a370974da7796a9db3a0cbdb1556c134d4d"},
     "CVE-2023-24818": {
         "0bec3e245ed3815ad6c8cae54673f0021777768b",
@@ -34,16 +35,18 @@ FIX_COMMITS.update({
 
 BASE_CONFIG = {
     "base_commit": "2022.07",
-    "target": "gnrc_networking",
+    "target": "st_mqttsn",
     "release": "2022.07",
     "patches": [
         #"base.patch",
-        "read.patch",
+        #"read.patch",
         #"increase_stack_size.patch",
         #"gnrc_networking_activate_modules.patch",
-        "log.patch",
-        "module.patch",
+        #"log.patch",
+        #"module.patch",
         "remove_checksums.patch",
+        "smart-light.patch",
+        "new-board.patch",
         #"prevent_null_deref_gnrc_sixlowpan_frag_sfr_arq_timeout.patch",
         "fix_CVE-2023-24826.patch",
         "fix_CVE-2023-33973.patch",
@@ -57,19 +60,20 @@ CONFIG = {
     cve_id: {**BASE_CONFIG, "backport_commits": FIX_COMMITS.difference(commits)}
     for cve_id, commits in FIX_COMMITS_MAPPING.items()
 }
-CONFIG["CVE-2023-24826"]["patches"] = BASE_CONFIG["patches"].copy()
-CONFIG["CVE-2023-24826"]["patches"].remove("fix_CVE-2023-24826.patch")
-CONFIG["CVE-2023-33973"]["patches"] = BASE_CONFIG["patches"].copy()
-CONFIG["CVE-2023-33973"]["patches"].remove("fix_CVE-2023-33973.patch")
-CONFIG["CVE-2023-33974"]["patches"] = BASE_CONFIG["patches"].copy()
-CONFIG["CVE-2023-33974"]["patches"].remove("fix_CVE-2023-33974.patch")
-CONFIG["CVE-2023-33975"]["patches"] = BASE_CONFIG["patches"].copy()
-CONFIG["CVE-2023-33975"]["patches"].remove("fix_CVE-2023-33975.patch")
 
+CONFIG["CVE-2023-24800"]["backport_commits"] = set()
+CONFIG["CVE-2023-24800"]["patches"].remove("fix_CVE-2023-24826.patch")
+#CONFIG["CVE-2023-24826"]["patches"] = BASE_CONFIG["patches"].copy()
+#CONFIG["CVE-2023-24826"]["patches"].remove("fix_CVE-2023-24826.patch")
+#CONFIG["CVE-2023-33973"]["patches"] = BASE_CONFIG["patches"].copy()
+#CONFIG["CVE-2023-33973"]["patches"].remove("fix_CVE-2023-33973.patch")
+#CONFIG["CVE-2023-33974"]["patches"] = BASE_CONFIG["patches"].copy()
+#CONFIG["CVE-2023-33974"]["patches"].remove("fix_CVE-2023-33974.patch")
+#CONFIG["CVE-2023-33975"]["patches"] = BASE_CONFIG["patches"].copy()
+#CONFIG["CVE-2023-33975"]["patches"].remove("fix_CVE-2023-33975.patch")
+
+#CONFIG["CVE-2023-24822"]["patches"].append("24818-mpu.patch")
 CONFIG["CVE-2023-24818"]["patches"].append("24818-mpu.patch")
-
-
-
 
 GIT_URL = "https://github.com/RIOT-OS/RIOT"
 
@@ -81,8 +85,8 @@ def build(repo_path, out_path, cache_path, config, nproc):
         "DOCKER_ENVIRONMENT_CMDLINE": "-e 'CFLAGS=-gdwarf-4 -gstrict-dwarf'",
     }
     target_path = repo_path.joinpath("examples", config["target"])
-    subprocess.run(["make", "-C", target_path, "-j", str(nproc), "BOARD=cc2538dk", "clean", "all"], env=env, check=True)
-    bin_path = target_path.joinpath("bin", "cc2538dk")
+    subprocess.run(["make", "-C", target_path, "-j", str(nproc), "BOARD=generic-cc2538-cc2592-dk", "clean", "all"], env=env)
+    bin_path = target_path.joinpath("bin", "generic-cc2538-cc2592-dk")
     bins = [f"{config['target']}.bin", f"{config['target']}.elf"]
     for bin in bins:
         bin_path.joinpath(bin).replace(out_path.joinpath(bin))

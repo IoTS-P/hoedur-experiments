@@ -1,0 +1,560 @@
+From 49c8e04ac79933d5ea2ddefe7453c2f66c4092f8 Mon Sep 17 00:00:00 2001
+From: Dingisoul <reaperlu@hust.edu.cn>
+Date: Sun, 21 Jul 2024 15:18:59 +0800
+Subject: [PATCH] [generic-cc2538]: add new board
+
+Signed-off-by: Dingisoul <reaperlu@hust.edu.cn>
+---
+ boards/generic-cc2538-cc2592-dk/Kconfig       |  13 ++
+ boards/generic-cc2538-cc2592-dk/Makefile      |   3 +
+ boards/generic-cc2538-cc2592-dk/Makefile.dep  |   7 +
+ .../Makefile.features                         |  14 ++
+ .../generic-cc2538-cc2592-dk/Makefile.include |  21 +++
+ .../generic-cc2538-cc2592-dk/dist/openocd.cfg |   1 +
+ boards/generic-cc2538-cc2592-dk/doc.txt       |  84 ++++++++++++
+ .../generic-cc2538-cc2592-dk/include/board.h  | 127 ++++++++++++++++++
+ .../include/gpio_params.h                     |  91 +++++++++++++
+ .../include/periph_conf.h                     | 107 +++++++++++++++
+ 10 files changed, 468 insertions(+)
+ create mode 100644 boards/generic-cc2538-cc2592-dk/Kconfig
+ create mode 100644 boards/generic-cc2538-cc2592-dk/Makefile
+ create mode 100644 boards/generic-cc2538-cc2592-dk/Makefile.dep
+ create mode 100644 boards/generic-cc2538-cc2592-dk/Makefile.features
+ create mode 100644 boards/generic-cc2538-cc2592-dk/Makefile.include
+ create mode 100644 boards/generic-cc2538-cc2592-dk/dist/openocd.cfg
+ create mode 100644 boards/generic-cc2538-cc2592-dk/doc.txt
+ create mode 100644 boards/generic-cc2538-cc2592-dk/include/board.h
+ create mode 100644 boards/generic-cc2538-cc2592-dk/include/gpio_params.h
+ create mode 100644 boards/generic-cc2538-cc2592-dk/include/periph_conf.h
+
+diff --git a/boards/generic-cc2538-cc2592-dk/Kconfig b/boards/generic-cc2538-cc2592-dk/Kconfig
+new file mode 100644
+index 0000000000..f0d48e5d8c
+--- /dev/null
++++ b/boards/generic-cc2538-cc2592-dk/Kconfig
+@@ -0,0 +1,13 @@
++# Copyright (c) 2020 HAW Hamburg
++#
++# This file is subject to the terms and conditions of the GNU Lesser
++# General Public License v2.1. See the file LICENSE in the top level
++# directory for more details.
++
++config BOARD
++    default "generic-cc2538-cc2592-dk" if BOARD_GENERIC_CC2538_CC2592_DK
++
++config BOARD_GENERIC_CC2538_CC2592_DK
++    bool
++    default y
++    select CPU_MODEL_CC2538SF53
+diff --git a/boards/generic-cc2538-cc2592-dk/Makefile b/boards/generic-cc2538-cc2592-dk/Makefile
+new file mode 100644
+index 0000000000..f8fcbb53a0
+--- /dev/null
++++ b/boards/generic-cc2538-cc2592-dk/Makefile
+@@ -0,0 +1,3 @@
++MODULE = board
++
++include $(RIOTBASE)/Makefile.base
+diff --git a/boards/generic-cc2538-cc2592-dk/Makefile.dep b/boards/generic-cc2538-cc2592-dk/Makefile.dep
+new file mode 100644
+index 0000000000..e64ec936dd
+--- /dev/null
++++ b/boards/generic-cc2538-cc2592-dk/Makefile.dep
+@@ -0,0 +1,7 @@
++ifneq (,$(filter netdev_default,$(USEMODULE)))
++  USEMODULE += cc2538_rf
++endif
++
++ifneq (,$(filter saul_default,$(USEMODULE)))
++  USEMODULE += saul_gpio
++endif
+diff --git a/boards/generic-cc2538-cc2592-dk/Makefile.features b/boards/generic-cc2538-cc2592-dk/Makefile.features
+new file mode 100644
+index 0000000000..1ee58c9d5d
+--- /dev/null
++++ b/boards/generic-cc2538-cc2592-dk/Makefile.features
+@@ -0,0 +1,14 @@
++CPU = cc2538
++CPU_MODEL ?= cc2538sf53
++
++# Put defined MCU peripherals here (in alphabetical order)
++FEATURES_PROVIDED += periph_adc
++FEATURES_PROVIDED += periph_i2c
++FEATURES_PROVIDED += periph_rtt
++FEATURES_PROVIDED += periph_spi
++FEATURES_PROVIDED += periph_timer
++FEATURES_PROVIDED += periph_uart
++
++# Various other features (if any)
++FEATURES_PROVIDED += emulator_renode
++FEATURES_PROVIDED += riotboot
+diff --git a/boards/generic-cc2538-cc2592-dk/Makefile.include b/boards/generic-cc2538-cc2592-dk/Makefile.include
+new file mode 100644
+index 0000000000..2569a9f594
+--- /dev/null
++++ b/boards/generic-cc2538-cc2592-dk/Makefile.include
+@@ -0,0 +1,21 @@
++TTY_BOARD_FILTER := --vendor 'Silicon Labs' --model 'CP2102 USB to UART Bridge Controller'
++
++OPENOCD_DEBUG_ADAPTER ?= jlink
++OPENOCD_TRANSPORT := jtag
++
++ifneq (,$(filter debug debug-server,$(MAKECMDGOALS)))
++  # `make debug` doesn't work with default cc2538-bsl, so let's default
++  # OpenOCD when the user wants to debug
++  PROGRAMMER ?= openocd
++
++  # OpenOCD only works for debugging, not flashing
++  PROGRAMMERS_SUPPORTED += openocd
++endif
++
++ifeq (openocd,$(PROGRAMMER))
++  ifneq (,$(filter flash flash-only,$(MAKECMDGOALS)))
++    $(error "Flashing the generic-cc2538-cc2592-dk via OpenOCD is not supported (yet), only debugging")
++  endif
++endif
++
++include $(RIOTBOARD)/common/cc2538/Makefile.include
+diff --git a/boards/generic-cc2538-cc2592-dk/dist/openocd.cfg b/boards/generic-cc2538-cc2592-dk/dist/openocd.cfg
+new file mode 100644
+index 0000000000..ffc2e5b806
+--- /dev/null
++++ b/boards/generic-cc2538-cc2592-dk/dist/openocd.cfg
+@@ -0,0 +1 @@
++source [find target/cc2538.cfg]
+diff --git a/boards/generic-cc2538-cc2592-dk/doc.txt b/boards/generic-cc2538-cc2592-dk/doc.txt
+new file mode 100644
+index 0000000000..f463e2f886
+--- /dev/null
++++ b/boards/generic-cc2538-cc2592-dk/doc.txt
+@@ -0,0 +1,84 @@
++/**
++@defgroup    boards_generic_cc2538_cc2592_dk Generic CC2538-CC2592-DK Board
++@ingroup     boards
++@brief       Support for the 3rd party CC2538-CC2592-DK board
++
++## Overview
++
++@image html https://raw.githubusercontent.com/maribu/images/master/CC2538-CC2592-DK-front.jpeg "Front side of the CC2538-CC2592-DK board" width=50%
++@image html https://raw.githubusercontent.com/maribu/images/master/CC2538-CC2592-DK-back.jpeg "Back side of the CC2538-CC2592-DK board" width=50%
++
++The generic CC2538-CC2592-DK board can obtained from various vendors in the
++typical [online][buy-cc2538-cc2592-dk-1] [shops][buy-cc2538-cc2592-dk-2].
++There are currently few options for readily available and affordable boards
++featuring a legacy CC2538 MCU; this is one of them.
++
++The boards seem to be based on the schematics provided by
++[`@knowic`][knowic-author] via [the CC2538_CC2592_DK repo][board-repo].
++
++[buy-cc2538-cc2592-dk-1]: https://www.aliexpress.com/wholesale?SearchText=CC2538+CC2592+development+board
++[buy-cc2538-cc2592-dk-2]: https://www.ebay.com/sch/i.html?_nkw=CC2538+CC2592+development+board
++[knowic-author]: https://github.com/knowic
++[board-repo]: https://github.com/knowic/CC2538_CC2592_DK
++
++## Hardware
++
++| MCU               | CC2538SF53                                |
++|:----------------- |:----------------------------------------- |
++| Family            | ARM Cortex-M3                             |
++| Vendor            | Texas Instruments                         |
++| RAM               | 32 KiB                                    |
++| Flash             | 512 KiB                                   |
++| Frequency         | 32 MHz                                    |
++| FPU               | no                                        |
++| Timers            | 4                                         |
++| ADCs              | 1x 12-bit (8 channels)                    |
++| UARTs             | 2                                         |
++| SPIs              | 2                                         |
++| I2Cs              | 1                                         |
++| Vcc               | 3.6 V - 5 V (MCU powered @ 3.3 V via LDO) |
++| Schematics        | [Board Schematics][schematics]            |
++
++### Schematics
++
++<img src="https://raw.githubusercontent.com/maribu/images/master/CC2538-CC2592-DK-schematic.svg" alt="Schematics of the CC2538-CC2592-DK board" style="width: 100%;">
++
++[Download schematics from author's repo][schematics].
++
++[schematics]: https://github.com/knowic/CC2538_CC2592_DK/blob/main/CC2538_CC2592_DK_1V3.pdf
++
++##  Flashing
++
++Prior to flashing the bootloader needs to be entered. For this, hold the
++"SELECT" button, press the "RESET" button, then release the "SELECT"
++button. Now run
++
++```
++make BOARD=generic-cc2538-cc2592-dk flash
++```
++
++@note   Flashing via J-Link would also be possible by passing
++        `PROGRAMMER=jlink`, but requires attaching a J-Link programmer/debugger.
++
++## Accessing the terminal
++
++The board features an CP2102 USB to UART bridge that is used for stdio by
++default. Just use
++
++```
++make BOARD=generic-cc2538-cc2592-dk term
++```
++
++## Debugging
++
++Assuming an J-Link (e.g. the J-Link EDU Mini) debugger is connected, debugging
++is as simple as:
++
++```
++make BOARD=generic-cc2538-cc2592-dk debug
++```
++
++@note   By default OpenOCD is used for debugging. While debugging works fine
++        with OpenOCD, flashing is only supported via the bootloader or `jlink`.
++
++ */
+diff --git a/boards/generic-cc2538-cc2592-dk/include/board.h b/boards/generic-cc2538-cc2592-dk/include/board.h
+new file mode 100644
+index 0000000000..cf1667caec
+--- /dev/null
++++ b/boards/generic-cc2538-cc2592-dk/include/board.h
+@@ -0,0 +1,127 @@
++/*
++ * Copyright (C) 2024 Marian Buschsieweke
++ *
++ * This file is subject to the terms and conditions of the GNU Lesser
++ * General Public License v2.1. See the file LICENSE in the top level
++ * directory for more details.
++ */
++
++/**
++ * @ingroup     boards_generic_cc2538_cc2592_dk
++ * @{
++ *
++ * @file
++ * @brief       Definitions for the Generic CC2538-CC2592-DK Board
++ *
++ * @author      Marian Buschsieweke <marian.buschsieweke@posteo.net>
++ */
++
++#ifndef BOARD_H
++#define BOARD_H
++
++#include "cpu.h"
++#include "periph/gpio.h"
++#include "cc2538_eui_primary.h"
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++/**
++ * @name    LED pin definitions and handlers
++ * @{
++ */
++#define LED_GREEN_PIN       GPIO_PIN(PORT_C, 0) /**< GPIO pin for green LED */
++#define LED_GREEN_PORT      GPIO_C              /**< GPIO port register to used to control green LED */
++#define LED_GREEN_BIT       (1U << 0)           /**< Bitmask to write to @ref LED_GREEN_PORT */
++#define LED0_PIN            LED_GREEN_PIN       /**< Alias for LED_GREEN_PIN */
++#define LED0_PORT           LED_GREEN_PORT      /**< Alias for LED_GREEN_PORT */
++#define LED0_BIT            LED_GREEN_BIT       /**< Alias for LED_GREEN_BIT */
++
++#define LED_RED_PIN         GPIO_PIN(PORT_C, 1) /**< GPIO pin for red LED */
++#define LED_RED_PORT        GPIO_C              /**< GPIO port register to used to control red LED */
++#define LED_RED_BIT         (1U << 1)           /**< Bitmask to write to @ref LED_RED_PORT */
++#define LED1_PIN            LED_RED_PIN         /**< Alias for LED_RED_PIN */
++#define LED1_PORT           LED_RED_PORT        /**< Alias for LED_RED_PORT */
++#define LED1_BIT            LED_RED_BIT         /**< Alias for LED_RED_BIT */
++
++#define LED_YELLOW_PIN      GPIO_PIN(PORT_B, 1) /**< GPIO pin for yellow LED */
++#define LED_YELLOW_PORT     GPIO_B              /**< GPIO port register to used to control yellow LED */
++#define LED_YELLOW_BIT      (1U << 1)           /**< Bitmask to write to @ref LED_YELLOW_PORT */
++#define LED2_PIN            LED_YELLOW_PIN      /**< Alias for LED_YELLOW_PIN */
++#define LED2_PORT           LED_YELLOW_PORT     /**< Alias for LED_YELLOW_PORT */
++#define LED2_BIT            LED_YELLOW_BIT      /**< Alias for LED_YELLOW_BIT */
++
++#define LED_BLUE_PIN        GPIO_PIN(PORT_B, 0) /**< GPIO pin for blue LED */
++#define LED_BLUE_PORT       GPIO_B              /**< GPIO port register to used to control blue LED */
++#define LED_BLUE_BIT        (1U << 0)           /**< Bitmask to write to @ref LED_BLUE_PORT */
++#define LED3_PIN            LED_BLUE_PIN        /**< Alias for LED_BLUE_PIN */
++#define LED3_PORT           LED_BLUE_PORT       /**< Alias for LED_BLUE_PORT */
++#define LED3_BIT            LED_BLUE_BIT        /**< Alias for LED_BLUE_BIT */
++
++#define LED0_ON             (LED0_PORT->DATA |=  LED0_BIT)
++#define LED0_OFF            (LED0_PORT->DATA &= ~LED0_BIT)
++#define LED0_TOGGLE         (LED0_PORT->DATA ^=  LED0_BIT)
++
++#define LED1_ON             (LED1_PORT->DATA |=  LED1_BIT)
++#define LED1_OFF            (LED1_PORT->DATA &= ~LED1_BIT)
++#define LED1_TOGGLE         (LED1_PORT->DATA ^=  LED1_BIT)
++
++#define LED2_ON             (LED2_PORT->DATA |=  LED2_BIT)
++#define LED2_OFF            (LED2_PORT->DATA &= ~LED2_BIT)
++#define LED2_TOGGLE         (LED2_PORT->DATA ^=  LED2_BIT)
++
++#define LED3_ON             (LED3_PORT->DATA |=  LED3_BIT)
++#define LED3_OFF            (LED3_PORT->DATA &= ~LED3_BIT)
++#define LED3_TOGGLE         (LED3_PORT->DATA ^=  LED3_BIT)
++/** @} */
++
++/**
++ * @name    User button
++ * @{
++ */
++#define BTN_LEFT_PIN        GPIO_PIN(PORT_C, 4) /**< GPIO pin for button "LEFT" */
++#define BTN_LEFT_MODE       GPIO_IN_PU          /**< GPIO mode for button "LEFT" */
++#define BTN0_PIN            BTN_LEFT_PIN        /**< Alias for BTN_LEFT_PIN */
++#define BTN0_MODE           BTN_LEFT_MODE       /**< Alias for BTN_LEFT_MODE */
++
++#define BTN_RIGHT_PIN       GPIO_PIN(PORT_C, 5) /**< GPIO pin for button "RIGHT" */
++#define BTN_RIGHT_MODE      GPIO_IN_PU          /**< GPIO mode for button "RIGHT" */
++#define BTN1_PIN            BTN_RIGHT_PIN       /**< Alias for BTN_RIGHT_PIN */
++#define BTN1_MODE           BTN_RIGHT_MODE      /**< Alias for BTN_RIGHT_MODE */
++
++#define BTN_UP_PIN          GPIO_PIN(PORT_C, 6) /**< GPIO pin for button "UP" */
++#define BTN_UP_MODE         GPIO_IN_PU          /**< GPIO mode for button "UP" */
++#define BTN2_PIN            BTN_UP_PIN          /**< Alias for BTN_UP_PIN */
++#define BTN2_MODE           BTN_UP_MODE         /**< Alias for BTN_UP_MODE */
++
++#define BTN_DOWN_PIN        GPIO_PIN(PORT_C, 7) /**< GPIO pin for button "DOWN" */
++#define BTN_DOWN_MODE       GPIO_IN_PU          /**< GPIO mode for button "DOWN" */
++#define BTN3_PIN            BTN_DOWN_PIN        /**< Alias for BTN_DOWN_PIN */
++#define BTN3_MODE           BTN_DOWN_MODE       /**< Alias for BTN_DOWN_MODE */
++
++#define BTN_SELECT_PIN      GPIO_PIN(PORT_A, 3) /**< GPIO pin for button "SELECT" */
++#define BTN_SELECT_MODE     GPIO_IN_PU          /**< GPIO mode for button "SELECT" */
++#define BTN4_PIN            BTN_SELECT_PIN      /**< Alias for BTN_SELECT_PIN */
++#define BTN4_MODE           BTN_SELECT_MODE     /**< Alias for BTN_SELECT_MODE */
++/** @} */
++
++/**
++ * @name    Flash Customer Configuration Area (CCA) parameters
++ * @{
++ */
++#ifndef UPDATE_CCA
++#define UPDATE_CCA                1
++#endif
++
++#define CCA_BACKDOOR_ENABLE       1
++#define CCA_BACKDOOR_PORT_A_PIN   3 /**< Select button */
++#define CCA_BACKDOOR_ACTIVE_LEVEL 0 /**< Active low */
++/** @} */
++
++#ifdef __cplusplus
++} /* end extern "C" */
++#endif
++
++#endif /* BOARD_H */
++/** @} */
+diff --git a/boards/generic-cc2538-cc2592-dk/include/gpio_params.h b/boards/generic-cc2538-cc2592-dk/include/gpio_params.h
+new file mode 100644
+index 0000000000..d16b3b5bae
+--- /dev/null
++++ b/boards/generic-cc2538-cc2592-dk/include/gpio_params.h
+@@ -0,0 +1,91 @@
++/*
++ * Copyright (C) 2024 Marian Buschsieweke
++ *
++ * This file is subject to the terms and conditions of the GNU Lesser
++ * General Public License v2.1. See the file LICENSE in the top level
++ * directory for more details.
++ */
++
++/**
++ * @ingroup     boards_generic_cc2538_cc2592_dk
++ * @{
++ *
++ * @file
++ * @brief       Definitions for the Generic CC2538-CC2592-DK Board
++ *
++ * @author      Marian Buschsieweke <marian.buschsieweke@posteo.net>
++ */
++#ifndef GPIO_PARAMS_H
++#define GPIO_PARAMS_H
++
++#include "board.h"
++#include "saul/periph.h"
++
++#ifdef __cplusplus
++extern "C"
++{
++#endif
++
++/**
++ * @brief   Expose LEDs and buttons via SAUL
++ */
++static const saul_gpio_params_t saul_gpio_params[] =
++    {
++        {
++            .name = "LED Green",
++            .pin = LED_GREEN_PIN,
++            .mode = GPIO_OUT,
++        },
++        {
++            .name = "LED Red",
++            .pin = LED_RED_PIN,
++            .mode = GPIO_OUT,
++        },
++        {
++            .name = "LED Yellow",
++            .pin = LED_YELLOW_PIN,
++            .mode = GPIO_OUT,
++        },
++        {
++            .name = "LED Blue",
++            .pin = LED_BLUE_PIN,
++            .mode = GPIO_OUT,
++        },
++        {
++            .name = "BTN Left",
++            .pin = BTN_LEFT_PIN,
++            .mode = BTN_LEFT_MODE,
++            .flags = SAUL_GPIO_INVERTED,
++        },
++        {
++            .name = "BTN Right",
++            .pin = BTN_RIGHT_PIN,
++            .mode = BTN_RIGHT_MODE,
++            .flags = SAUL_GPIO_INVERTED,
++        },
++        {
++            .name = "BTN Up",
++            .pin = BTN_UP_PIN,
++            .mode = BTN_UP_MODE,
++            .flags = SAUL_GPIO_INVERTED,
++        },
++        {
++            .name = "BTN Down",
++            .pin = BTN_DOWN_PIN,
++            .mode = BTN_DOWN_MODE,
++            .flags = SAUL_GPIO_INVERTED,
++        },
++        {
++            .name = "BTN Select",
++            .pin = BTN_SELECT_PIN,
++            .mode = BTN_DOWN_MODE,
++            .flags = SAUL_GPIO_INVERTED,
++        },
++};
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif /* GPIO_PARAMS_H */
++/** @} */
+diff --git a/boards/generic-cc2538-cc2592-dk/include/periph_conf.h b/boards/generic-cc2538-cc2592-dk/include/periph_conf.h
+new file mode 100644
+index 0000000000..7520cf9d9f
+--- /dev/null
++++ b/boards/generic-cc2538-cc2592-dk/include/periph_conf.h
+@@ -0,0 +1,107 @@
++/*
++ * Copyright (C) 2024 Marian Buschsieweke
++ *
++ * This file is subject to the terms and conditions of the GNU Lesser
++ * General Public License v2.1. See the file LICENSE in the top level
++ * directory for more details.
++ */
++
++/**
++ * @ingroup     boards_generic_cc2538_cc2592_dk
++ * @{
++ *
++ * @file
++ * @brief       Peripheral MCU configuration for the Generic CC2538-CC2592-DK
++ *              board
++ *
++ * @author      Marian Buschsieweke <marian.buschsieweke@posteo.net>
++ */
++
++#ifndef PERIPH_CONF_H
++#define PERIPH_CONF_H
++
++#include "cpu.h"
++#include "periph_cpu.h"
++
++#include "cfg_clk_default.h"
++#include "cfg_timer_default.h"
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++/**
++ * @name    UART configuration
++ * @{
++ */
++static const uart_conf_t uart_config[] = {
++    {
++        .dev      = UART0_BASEADDR,
++        .rx_pin   = GPIO_PIN(PORT_A, 0),
++        .tx_pin   = GPIO_PIN(PORT_A, 1),
++#ifdef MODULE_PERIPH_UART_HW_FC
++        .cts_pin  = GPIO_UNDEF,
++        .rts_pin  = GPIO_UNDEF
++#endif
++    }
++};
++
++#define UART_0_ISR          isr_uart0   /**< interrupt function name mapping */
++
++#define UART_NUMOF          ARRAY_SIZE(uart_config) /**< number of UARTs */
++
++/** @} */
++
++/**
++ * @name I2C configuration
++ * @{
++ */
++#define I2C_IRQ_PRIO            1
++
++static const i2c_conf_t i2c_config[] = {
++    {
++        .speed = I2C_SPEED_FAST,    /**< bus speed */
++        .scl_pin = GPIO_PIN(PORT_A, 2),  /**< GPIO_PA2, SPI_SCK  on SmartRF06 */
++        .sda_pin = GPIO_PIN(PORT_A, 4)   /**< GPIO_PA4, SPI_MOSI on SmartRF06 */
++    },
++};
++
++#define I2C_NUMOF               ARRAY_SIZE(i2c_config)
++/** @} */
++
++/**
++ * @name SPI configuration
++ * @{
++ */
++static const spi_conf_t spi_config[] = {
++    {
++        .num      = 0,
++        .mosi_pin = GPIO_PIN(PORT_A, 4),
++        .miso_pin = GPIO_PIN(PORT_A, 5),
++        .sck_pin  = GPIO_PIN(PORT_A, 2),
++        .cs_pin   = GPIO_PIN(PORT_D, 0)
++    }
++};
++
++#define SPI_NUMOF           ARRAY_SIZE(spi_config)
++/** @} */
++
++/**
++ * @name ADC configuration
++ * @{
++ */
++#define SOC_ADC_ADCCON3_EREF  SOC_ADC_ADCCON3_EREF_AVDD5
++
++static const adc_conf_t adc_config[] = {
++    GPIO_PIN(PORT_A, 6), /**< GPIO_PA6 = ADC_ALS_PIN */
++};
++
++#define ADC_NUMOF           ARRAY_SIZE(adc_config)
++/** @} */
++
++#ifdef __cplusplus
++} /* end extern "C" */
++#endif
++
++#endif /* PERIPH_CONF_H */
++/** @} */
+-- 
+2.34.1
+

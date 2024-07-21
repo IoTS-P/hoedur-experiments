@@ -10,7 +10,7 @@
 */results/coverage/plots.json
 02-coverage-est-data-set/binary-patching/patched-binaries/
 04-prev-unknown-vulns/rebuilt/*
-04-prev-unknown-vulns/building/*/repo
+04-prev-unknown-vulns/building/**/repo
 04-prev-unknown-vulns/building/*/cache
 
 __pycache__
