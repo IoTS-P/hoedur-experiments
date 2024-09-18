@@ -1,0 +1,24 @@
+diff --git a/arch/cpu/cc2538/dev/watchdog.c b/arch/cpu/cc2538/dev/watchdog.c
+index 9f306e586..51a2f2624 100644
+--- a/arch/cpu/cc2538/dev/watchdog.c
++++ b/arch/cpu/cc2538/dev/watchdog.c
+@@ -72,7 +72,7 @@ void
+ watchdog_start(void)
+ {
+   /* Max interval (32768), watchdog mode, enable if configured to do so */
+-  REG(SMWDTHROSC_WDCTL) = WATCHDOG_ENABLE;
++  // REG(SMWDTHROSC_WDCTL) = WATCHDOG_ENABLE;
+ }
+ /*---------------------------------------------------------------------------*/
+ /**
+@@ -84,8 +84,8 @@ watchdog_start(void)
+ void
+ watchdog_periodic(void)
+ {
+-  REG(SMWDTHROSC_WDCTL) = (SMWDTHROSC_WDCTL_CLR_3 | SMWDTHROSC_WDCTL_CLR_1);
+-  REG(SMWDTHROSC_WDCTL) = (SMWDTHROSC_WDCTL_CLR_2 | SMWDTHROSC_WDCTL_CLR_0);
++  // REG(SMWDTHROSC_WDCTL) = (SMWDTHROSC_WDCTL_CLR_3 | SMWDTHROSC_WDCTL_CLR_1);
++  // REG(SMWDTHROSC_WDCTL) = (SMWDTHROSC_WDCTL_CLR_2 | SMWDTHROSC_WDCTL_CLR_0);
+ }
+ /*---------------------------------------------------------------------------*/
+ /** \brief Keeps control until the WDT throws a reset signal. Starts the WDT

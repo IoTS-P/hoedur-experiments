@@ -50,7 +50,23 @@ CONFIG = {
         "example": "hello-world",
         "target": "cc2538dk",
     },
+    "CVE-2022-41873-41972": {
+        "base_commit": "9771e9aaebbfbb5633ce69eb9876e0fc70bbcd6f",
+        "backport_commits": [],
+        "patches": [
+            "cc2538_norom.patch",
+            "noise-sensor.patch", # example
+            "hardfault_handler.patch", # patches for hardfault
+            "ble_packet_ptr.patch", # skip the 802154 header because of hardware check
+            "no-dma.patch", # comment the DMA read
+            "cc2538-watchdog.patch", # comment the watchdog, because it will fail the stepping debug
+            "log.patch", # log on and fix the l2cap do not switch cc2538 rfcore on
+        ],
+        "example": "noise-sensor",
+        "target": "cc2538dk",
+    },
 }
+
 
 GIT_URL = "https://github.com/contiki-ng/contiki-ng"
 DOCKER_IMAGE = "contiker/contiki-ng:f823e6a1"

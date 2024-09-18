@@ -45,7 +45,7 @@ def prepare_git(target_path, url, config):
     for submodule in repo.submodules:
         submodule.update(recursive=True, progress=ProgressPrinter())
     repo.head.reset(config["base_commit"], index=True, working_tree=True)
-    repo.git.clean(force=True)
+    repo.git.clean('-fd', force=True)
     for revert in config.get("revert_commits", []):
         repo.git.revert(revert, no_commit=True)
     for backport in config.get("backport_commits", []):

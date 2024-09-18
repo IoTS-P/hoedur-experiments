@@ -1,0 +1,33 @@
+diff --git a/arch/cpu/cc2538/dev/cc2538-rf.c b/arch/cpu/cc2538/dev/cc2538-rf.c
+index 24a3c636f..0a1e30b5b 100644
+--- a/arch/cpu/cc2538/dev/cc2538-rf.c
++++ b/arch/cpu/cc2538/dev/cc2538-rf.c
+@@ -72,7 +72,7 @@
+ /* Log configuration */
+ #include "sys/log.h"
+ #define LOG_MODULE "cc2538-rf"
+-#define LOG_LEVEL LOG_LEVEL_NONE
++#define LOG_LEVEL LOG_LEVEL_DBG
+ /*---------------------------------------------------------------------------*/
+ /* Local RF Flags */
+ #define RX_ACTIVE     0x80
+@@ -192,7 +192,9 @@ set_channel(uint8_t channel)
+   if(was_on) {
+     on();
+   }
+-
++  // fix the l2cap not power on the cc2538 rfcore
++  off();
++  on();
+   rf_channel = channel;
+ }
+ /*---------------------------------------------------------------------------*/
+@@ -798,7 +800,7 @@ read(void *buf, unsigned short bufsize)
+   } else {
+     for(i = 0; i < len; ++i) {
+       ((unsigned char *)(buf))[i] = REG(RFCORE_SFR_RFDATA);
+-      LOG_INFO_("%02x", ((unsigned char *)(buf))[i]);
++      // LOG_INFO_("%02x", ((unsigned char *)(buf))[i]);
+     }
+   }
+ 
