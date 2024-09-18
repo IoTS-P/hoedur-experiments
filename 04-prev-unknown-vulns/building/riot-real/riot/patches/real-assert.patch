@@ -1,0 +1,12 @@
+diff --git a/cpu/cc2538/radio/cc2538_rf_internal.c b/cpu/cc2538/radio/cc2538_rf_internal.c
+index f990fa9a50..744202f332 100644
+--- a/cpu/cc2538/radio/cc2538_rf_internal.c
++++ b/cpu/cc2538/radio/cc2538_rf_internal.c
+@@ -129,6 +129,6 @@ bool RFCORE_ASSERT_failure(const char *expr, const char *func, int line)
+     (void)func;
+     (void)line;
+ #endif
+-
++    assert(false);
+     return false;
+ }
